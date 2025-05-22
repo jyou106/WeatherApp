@@ -1,0 +1,2 @@
+#To run
+pip install fastapi uvicorn sqlalchemy python-dotenv requests pydantic-settings
