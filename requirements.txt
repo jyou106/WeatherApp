@@ -1,2 +1,6 @@
-#To run
+#To run write the following commands in the terminal
+python -m venv .venv
+
+.\.venv\Scripts\Activate
+
 pip install fastapi uvicorn sqlalchemy python-dotenv requests pydantic-settings
