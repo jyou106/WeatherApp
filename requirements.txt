@@ -1,4 +1,4 @@
-#To run write the following commands in the terminal
+#To run, write the following commands in the terminal
 python -m venv .venv
 
 .\.venv\Scripts\Activate

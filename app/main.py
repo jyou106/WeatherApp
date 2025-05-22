@@ -11,12 +11,18 @@ from app.services import get_weather_by_location
 
 models.Base.metadata.create_all(bind=engine)
 
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent      # WeatherApp/
+FRONTEND_DIR = BASE_DIR / "front"
 
 app = FastAPI()
 
-app.mount("/front", StaticFiles(directory="front"), name="front")
-app.mount("/", StaticFiles(directory="front", html=True), name="front_index")
+# Mount static files
+app.mount("/front", StaticFiles(directory=FRONTEND_DIR), name="front")
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="root")
 
 # CORS middleware
 app.add_middleware(

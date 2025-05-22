@@ -1,8 +1,7 @@
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = '';
 
-async function fetchWeather(location) {
+export async function fetchWeather(location) {
     try {
-        // Show loading indicator
         document.getElementById('loading').classList.remove('hidden');
         
         const response = await fetch(`${API_BASE_URL}/weather/current/${encodeURIComponent(location)}`);
@@ -17,12 +16,11 @@ async function fetchWeather(location) {
         console.error('API Error:', error);
         throw error;
     } finally {
-        // Hide loading indicator
         document.getElementById('loading').classList.add('hidden');
     }
 }
 
-async function fetchWeatherByCoords(lat, lon) {
+export async function fetchWeatherByCoords(lat, lon) {
     try {
         document.getElementById('loading').classList.remove('hidden');
         const response = await fetch(`${API_BASE_URL}/weather/current/${lat},${lon}`);
