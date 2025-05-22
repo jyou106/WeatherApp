@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div class="weather-app">
+        <header>
+            <h1>Weather Forecast</h1>
+            <div class="search-container">
+                <input type="text" id="location-input" placeholder="City, ZIP, or landmark...">
+                <button id="search-btn">Search</button>
+                <button id="current-location-btn">📍 Use My Location</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Current Weather -->
+            <section id="current-weather" class="card hidden">
+                <div class="weather-main">
+                    <h2 id="location-name">--</h2>
+                    <div id="weather-icon">☀️</div>
+                    <p id="temperature">--°C</p>
+                </div>
+                <div class="weather-details">
+                    <p>Humidity: <span id="humidity">--</span>%</p>
+                    <p>Wind: <span id="wind-speed">--</span> km/h</p>
+                    <p>Feels like: <span id="feels-like">--</span>°C</p>
+                </div>
+            </section>
+
+            <!-- 5-Day Forecast -->
+            <section id="forecast" class="hidden">
+                <h2>5-Day Forecast</h2>
+                <div class="forecast-container" id="forecast-container"></div>
+            </section>
+
+            <!-- Error Display -->
+            <div id="error-message" class="hidden"></div>
+        </main>
+    </div>
+    <div id="loading" class="hidden">
+    <div class="loader"></div>
+    <p>Loading weather data...</p>
+    </div>
+
+    <div id="search-history" class="hidden">
+        <h3>Recent Searches</h3>
+        <ul id="history-list"></ul>
+    </div>
+
+    <script src="scripts/api.js"></script>
+    <script src="scripts/dom.js"></script>
+    <script src="scripts/app.js"></script>
+</body>
+</html>
