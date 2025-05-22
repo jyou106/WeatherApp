@@ -4,6 +4,15 @@ from urllib.parse import quote
 from .config import settings
 from typing import Dict, Any
 
+import re
+
+_zip_re = re.compile(r"^\d{5}(?:-\d{4})?$")     # 12345   or   12345-6789
+
+def is_zip(candidate: str) -> bool:
+    """Return True if the string looks like a U.S. ZIP code."""
+    return bool(_zip_re.fullmatch(candidate.strip()))
+
+
 def get_weather_by_location(location: str) -> Dict[str, Any]:
     """
     Get complete weather data for a location using OpenWeatherMap API
@@ -61,58 +70,44 @@ def get_weather_by_location(location: str) -> Dict[str, Any]:
             detail=f"Unexpected error: {str(e)}"
         )
 
-# Keep your existing validate_location function
-def validate_location(location: str):
-    print(f"VALIDATION KEY: {settings.openweather_api_key}")
-    
-    if "your_openweather_api_key" in settings.openweather_api_key:
-        raise HTTPException(
-            status_code=500,
-            detail="Server misconfiguration: Invalid API key"
-        )
-    
-    if not settings.openweather_api_key:
-        raise HTTPException(
-            status_code=500,
-            detail="Server error: API key not configured"
-        )
+def lookup_zip(zip_code: str, country: str = "us") -> Dict[str, float]:
+    url = (
+        f"http://api.openweathermap.org/geo/1.0/zip"
+        f"?zip={zip_code},{country}&appid={settings.openweather_api_key}"
+    )
+    r = requests.get(url, timeout=10)
+    r.raise_for_status()
+    data = r.json()           # raises if invalid JSON
+    return {"lat": float(data["lat"]), "lon": float(data["lon"])}
 
+
+def validate_location(location: str) -> Dict[str, float]:
+    key = settings.openweather_api_key
+    if not key or key == "your_openweather_api_key":
+        raise HTTPException(500, "API key mis-configured")
+
+    location = location.strip()
+
+    # 3a. ZIP-code path
+    if is_zip(location):
+        try:
+            return lookup_zip(location)
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(502, f"Weather service unavailable: {e}")
+        except KeyError:
+            raise HTTPException(502, "Incomplete ZIP response")
+
+    # 3b. Fallback: original city/place path
     try:
-        url = f"http://api.openweathermap.org/geo/1.0/direct?q={location}&limit=1&appid={settings.openweather_api_key}"
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        
-        data = response.json()
-        
-        # Debug print to see actual API response
-        print(f"API Response: {data}")
-        
-        if not data or not isinstance(data, list):
-            raise HTTPException(
-                status_code=404,
-                detail="Location not found or invalid response"
-            )
-            
-        location_data = data[0]
-        
-        if 'lat' not in location_data or 'lon' not in location_data:
-            raise HTTPException(
-                status_code=502,
-                detail="API returned incomplete location data"
-            )
-            
-        return {
-            'lat': float(location_data['lat']),
-            'lon': float(location_data['lon'])
-        }
-        
+        url = (
+            "http://api.openweathermap.org/geo/1.0/direct"
+            f"?q={quote(location)}&limit=1&appid={key}"
+        )
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+        if not data:
+            raise HTTPException(404, "Location not found")
+        return {"lat": float(data[0]["lat"]), "lon": float(data[0]["lon"])}
     except requests.exceptions.RequestException as e:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Weather service unavailable: {str(e)}"
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unexpected error: {str(e)}"
-        )
+        raise HTTPException(502, f"Weather service unavailable: {e}")
