@@ -25,6 +25,13 @@ app = FastAPI()
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "front")
 app.mount("/front", StaticFiles(directory=FRONTEND_DIR), name="front")
 
+from fastapi.responses import FileResponse
+
+@app.get("/")
+def serve_frontend():
+    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
