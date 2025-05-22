@@ -20,9 +20,7 @@ FRONTEND_DIR = BASE_DIR / "front"
 
 app = FastAPI()
 
-# Mount static files
-app.mount("/front", StaticFiles(directory=FRONTEND_DIR), name="front")
-app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="root")
+app.mount("/front", StaticFiles(directory=FRONTEND_DIR, html=True), name="front")
 
 # CORS middleware
 app.add_middleware(
