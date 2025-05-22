@@ -1,10 +1,9 @@
 services:
   - type: web
     name: weather-app
-    runtime: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port 10000"
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
     envVars:
       - key: OPENWEATHER_API_KEY
-        value: 5bfdb704627988c7e0d0bfcb3423b7f1
-    plan: free
+      
