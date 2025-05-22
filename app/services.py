@@ -4,6 +4,64 @@ from urllib.parse import quote
 from .config import settings
 from typing import Dict, Any
 
+def get_weather_by_location(location: str) -> Dict[str, Any]:
+    """
+    Get complete weather data for a location using OpenWeatherMap API
+    Returns:
+        Dictionary containing weather data with keys:
+        - location (str)
+        - temperature (float)
+        - humidity (float)
+        - wind_speed (float)
+        - conditions (str)
+        - latitude (float)
+        - longitude (float)
+    """
+    try:
+        # First validate location and get coordinates
+        coords = validate_location(location)
+        if not coords:
+            raise HTTPException(status_code=404, detail="Location not found")
+
+        # Get weather data from OpenWeather API
+        weather_url = (
+            f"https://api.openweathermap.org/data/2.5/weather?"
+            f"lat={coords['lat']}&lon={coords['lon']}&"
+            f"appid={settings.openweather_api_key}&units=metric"
+        )
+        
+        response = requests.get(weather_url, timeout=10)
+        response.raise_for_status()
+        weather_data = response.json()
+
+        # Transform data to match your database model
+        return {
+            "location": location,
+            "temperature": weather_data["main"]["temp"],
+            "humidity": weather_data["main"]["humidity"],
+            "wind_speed": weather_data["wind"]["speed"],
+            "conditions": weather_data["weather"][0]["main"],
+            "latitude": coords["lat"],
+            "longitude": coords["lon"]
+        }
+
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Weather service unavailable: {str(e)}"
+        )
+    except KeyError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Unexpected API response format: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error: {str(e)}"
+        )
+
+# Keep your existing validate_location function
 def validate_location(location: str):
     print(f"VALIDATION KEY: {settings.openweather_api_key}")
     

@@ -7,10 +7,16 @@ from app.database import SessionLocal, engine
 from app import models, schemas, crud, services
 from typing import List
 from app.services import validate_location 
+from app.services import get_weather_by_location 
 
 models.Base.metadata.create_all(bind=engine)
 
+from fastapi.staticfiles import StaticFiles
+
 app = FastAPI()
+
+app.mount("/front", StaticFiles(directory="front"), name="front")
+app.mount("/", StaticFiles(directory="front", html=True), name="front_index")
 
 # CORS middleware
 app.add_middleware(
