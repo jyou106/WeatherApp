@@ -1,4 +1,4 @@
-const API_BASE_URL = '';
+const API_BASE_URL = 'http://localhost:8000';
 
 export async function fetchWeather(location) {
     try {
@@ -23,7 +23,7 @@ export async function fetchWeather(location) {
 export async function fetchWeatherByCoords(lat, lon) {
     try {
         document.getElementById('loading').classList.remove('hidden');
-        const response = await fetch(`${API_BASE_URL}/weather/current/${lat},${lon}`);
+        const response = await fetch(`${API_BASE_URL}/weather/current/coords/${lat}/${lon}`);
         if (!response.ok) throw new Error('Location not found');
         return await response.json();
     } catch (error) {

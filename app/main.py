@@ -11,16 +11,19 @@ from app.services import get_weather_by_location
 
 models.Base.metadata.create_all(bind=engine)
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+import os
+import requests
+from .config import settings
 
 BASE_DIR = Path(__file__).resolve().parent.parent      # WeatherApp/
-FRONTEND_DIR = BASE_DIR / "front"
 
 app = FastAPI()
 
-app.mount("/front", StaticFiles(directory=FRONTEND_DIR, html=True), name="front")
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "front")
+app.mount("/front", StaticFiles(directory=FRONTEND_DIR), name="front")
 
 # CORS middleware
 app.add_middleware(
@@ -38,6 +41,34 @@ def get_db():
         yield db
     finally:
         db.close()
+   
+@app.get("/weather/current/coords/{lat}/{lon}")
+def weather_by_coords(lat: float, lon: float):
+    try:
+        weather_url = (
+            f"https://api.openweathermap.org/data/2.5/weather?"
+            f"lat={lat}&lon={lon}&appid={settings.openweather_api_key}&units=metric"
+        )
+        response = requests.get(weather_url)
+        response.raise_for_status()
+        data = response.json()
+
+        return {
+            "location": f"{lat},{lon}",
+            "temperature": data["main"]["temp"],
+            "humidity": data["main"]["humidity"],
+            "wind_speed": data["wind"]["speed"],
+            "conditions": data["weather"][0]["main"],
+            "latitude": lat,
+            "longitude": lon
+        }
+
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Weather service unavailable: {e}")
+        
+@app.get("/weather/current/{location}")
+def weather_by_location(location: str):
+    return get_weather_by_location(location)
 
 @app.get("/weather/", response_model=List[schemas.WeatherRecord])
 def read_records(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):

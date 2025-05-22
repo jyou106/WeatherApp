@@ -27,9 +27,9 @@ export function displayCurrentWeather(data) {
     const elements = {
         'location-name': data.location || '--',
         'temperature': data.temperature ? `${Math.round(data.temperature)}°C` : '--°C',
-        'humidity': data.humidity ? `${data.humidity}%` : '--%',
-        'wind-speed': windSpeedKmh !== '--' ? `${windSpeedKmh} km/h` : '-- km/h',
-        'feels-like': data.temperature ? `${Math.round(data.temperature)}°C` : '--°C',
+        'humidity': data.humidity ? `${data.humidity}` : '--%',
+        'wind-speed': windSpeedKmh !== '--' ? `${windSpeedKmh}` : '-- km/h',
+        'feels-like': data.temperature ? `${Math.round(data.temperature)}` : '--°C',
         'weather-icon': getWeatherIcon(data.conditions)
     };
 
