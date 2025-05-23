@@ -29,11 +29,10 @@ def get_forecast_by_location(location: str, start: Optional[str] = None, end: Op
     results = []
     for entry in forecast_data.get("list", []):
         forecast_time = datetime.fromtimestamp(entry["dt"])
-        if start_dt and forecast_time.date() < start_dt.date():
+        if start_dt and forecast_time < start_dt:
             continue
-        if end_dt and forecast_time.date() >= end_dt.date():
+        if end_dt and forecast_time > end_dt:
             continue
-
 
         results.append({
             "timestamp": forecast_time.isoformat(),
