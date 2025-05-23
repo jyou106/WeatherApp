@@ -50,7 +50,6 @@ async function handleForecast() {
     }
 }
 
-
 async function handleSearch() {
     console.log("Search initiated");
     const locationInput = document.getElementById('location-input');
@@ -58,23 +57,27 @@ async function handleSearch() {
         displayError("Search input not found");
         return;
     }
-    
+
     const location = locationInput.value.trim();
     if (!location) {
         displayError('Please enter a location');
         return;
     }
-    
+
     try {
         console.log("Fetching weather for:", location);
         const weatherData = await fetchWeather(location);
         console.log("Received weather data:", weatherData);
         displayCurrentWeather(weatherData);
+
+        // ✅ Unhide the forecast section
+        document.getElementById('forecast').classList.remove('hidden');
     } catch (error) {
         console.error("Search failed:", error);
         displayError(error.message || 'Failed to get weather data');
     }
 }
+
 
 async function handleCurrentLocation() {
     console.log("Current location requested");
