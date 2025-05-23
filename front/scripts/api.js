@@ -44,18 +44,25 @@ export async function fetchForecast(location, start = null, end = null) {
         if (end) params.append("end", end);
         if ([...params].length > 0) url += `?${params.toString()}`;
 
+        console.log("Fetching forecast URL:", url);
+
         const response = await fetch(url);
         if (!response.ok) {
-            const error = await response.text();
-            throw new Error(`API Error: ${error}`);
+            let errorMessage = '';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.detail || JSON.stringify(errorData);
+            } catch {
+                errorMessage = await response.text();
+            }
+            throw new Error(`API Error: ${errorMessage}`);
         }
 
         return await response.json();
     } catch (error) {
-        console.error("API Error:", error);
+        console.error("Fetch forecast failed:", error);
         throw error;
     } finally {
         document.getElementById('loading').classList.add('hidden');
     }
 }
-

@@ -7,17 +7,18 @@ console.log("Weather app initialized");
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM fully loaded");
     
-    // Set up event listeners with error handling
     try {
         const searchBtn = document.getElementById('search-btn');
         const locationBtn = document.getElementById('current-location-btn');
+        const forecastBtn = document.getElementById('forecast-btn');  // Get forecast button
         
-        if (!searchBtn || !locationBtn) {
-            throw new Error("Could not find buttons!");
+        if (!searchBtn || !locationBtn || !forecastBtn) {
+            throw new Error("Could not find all required buttons!");
         }
         
         searchBtn.addEventListener('click', handleSearch);
         locationBtn.addEventListener('click', handleCurrentLocation);
+        forecastBtn.addEventListener('click', handleForecast);  // Add listener here
         
         // Add Enter key support for search input
         document.getElementById('location-input').addEventListener('keypress', (e) => {
@@ -29,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Setup error:", error);
         displayError("Failed to initialize app");
     }
-    document.getElementById('forecast-btn').addEventListener('click', handleForecast);
 });
 
 async function handleForecast() {
