@@ -1,6 +1,5 @@
-#To run, write the following commands in the terminal
-
-#pip install fastapi uvicorn sqlalchemy python-dotenv requests pydantic-settings
+#To run, the following need to be downloaded
+#for reference: pip install fastapi uvicorn sqlalchemy python-dotenv requests pydantic-settings
 
 fastapi
 uvicorn

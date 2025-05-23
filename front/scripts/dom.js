@@ -63,6 +63,8 @@ export function displayForecast(data) {
     const container = document.getElementById("forecast-container");
     container.innerHTML = ''; // Clear any previous forecast
 
+    document.getElementById("forecast").classList.remove("hidden");
+
     if (!data || data.length === 0) {
         container.innerHTML = '<p>No forecast data available.</p>';
         return;
