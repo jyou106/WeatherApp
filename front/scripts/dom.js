@@ -61,9 +61,7 @@ export function displayError(message) {
 
 export function displayForecast(data) {
     const container = document.getElementById("forecast-container");
-    container.innerHTML = ''; // Clear any previous forecast
-
-    document.getElementById("forecast").classList.remove("hidden");
+    container.innerHTML = ''; // Clear previous forecast
 
     if (!data || data.length === 0) {
         container.innerHTML = '<p>No forecast data available.</p>';
@@ -72,7 +70,7 @@ export function displayForecast(data) {
 
     data.forEach(item => {
         const forecastDiv = document.createElement('div');
-        forecastDiv.classList.add('forecast-item');
+        forecastDiv.classList.add('forecast-day'); // match your CSS class
 
         forecastDiv.innerHTML = `
             <h4>${prettyDate(item.timestamp)}</h4>
@@ -84,7 +82,14 @@ export function displayForecast(data) {
 
         container.appendChild(forecastDiv);
     });
+
+    // Make forecast section visible
+    const forecastSection = document.getElementById("forecast");
+    if (forecastSection.classList.contains("hidden")) {
+        forecastSection.classList.remove("hidden");
+    }
 }
+
 
 function prettyDate(isoDate) {
     const date = new Date(isoDate);
