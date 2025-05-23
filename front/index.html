@@ -18,7 +18,6 @@
         </header>
 
         <main>
-            <!-- Current weather display -->
             <section id="current-weather" class="card hidden">
                 <div class="weather-main">
                     <h2 id="location-name">--</h2>
@@ -26,14 +25,13 @@
                     <p id="temperature">--°C</p>
                 </div>
                 <div class="weather-details">
-                    <p>Humidity: <span id="humidity">--</span></p>
+                    <p>Humidity: <span id="humidity">--</span>%</p>
                     <p>Wind: <span id="wind-speed">--</span> km/h</p>
                     <p>Feels like: <span id="feels-like">--</span>°C</p>
                 </div>
             </section>
 
-            <!-- Forecast section -->
-            <section id="forecast" class="hidden">
+            <section id="forecast-section" class="hidden">
                 <h2>5-Day Forecast</h2>
 
                 <div class="forecast-controls">
@@ -45,9 +43,9 @@
                 <div id="forecast-container" class="forecast-container"></div>
             </section>
 
-            <!-- Error display -->
             <div id="error-message" class="hidden"></div>
         </main>
+
     </div>
 
     <!-- Loading spinner -->
