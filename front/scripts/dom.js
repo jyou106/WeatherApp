@@ -118,7 +118,11 @@ export function displayForecast(data) {
   });
 
   /* ── 3. Un-hide the section ───────────────────────────── */
-  document.getElementById("forecast").classList.remove("hidden");
+    // ✅ Unhide the entire forecast section, including the heading
+    document.getElementById('forecast-section').classList.remove('hidden');
+    // Also unhide the forecast container inside it
+    document.getElementById('forecast').classList.remove('hidden');
+
 }
 
 
