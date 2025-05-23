@@ -34,35 +34,30 @@ export async function fetchWeatherByCoords(lat, lon) {
     }
 }
 
-export async function fetchForecast(location, start = null, end = null) {
-    try {
-        document.getElementById('loading').classList.remove('hidden');
+export async function fetchForecast(location) {
+  try {
+    document.getElementById("loading").classList.remove("hidden");
 
-        let url = `${API_BASE_URL}/weather/forecast/${encodeURIComponent(location)}`;
-        const params = new URLSearchParams();
-        if (start) params.append("start", start);
-        if (end) params.append("end", end);
-        if ([...params].length > 0) url += `?${params.toString()}`;
+    // ⇣ simpler URL – no query-params
+    const url = `${API_BASE_URL}/weather/forecast/${encodeURIComponent(location)}`;
+    console.log("Fetching forecast URL:", url);
 
-        console.log("Fetching forecast URL:", url);
-
-        const response = await fetch(url);
-        if (!response.ok) {
-            let errorMessage = '';
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.detail || JSON.stringify(errorData);
-            } catch {
-                errorMessage = await response.text();
-            }
-            throw new Error(`API Error: ${errorMessage}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error("Fetch forecast failed:", error);
-        throw error;
-    } finally {
-        document.getElementById('loading').classList.add('hidden');
+    const response = await fetch(url);
+    if (!response.ok) {
+      let msg;
+      try {
+        const data = await response.json();
+        msg = data.detail || JSON.stringify(data);
+      } catch {
+        msg = await response.text();
+      }
+      throw new Error(`API Error: ${msg}`);
     }
+    return await response.json();
+  } catch (err) {
+    console.error("Fetch forecast failed:", err);
+    throw err;
+  } finally {
+    document.getElementById("loading").classList.add("hidden");
+  }
 }

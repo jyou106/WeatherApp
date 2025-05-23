@@ -22,11 +22,9 @@ app = FastAPI()
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "front")
 app.mount("/front", StaticFiles(directory=FRONTEND_DIR), name="front")
 
-
 @app.get("/")
 def serve_frontend():
     return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
-
 
 # CORS middleware
 app.add_middleware(
@@ -38,9 +36,9 @@ app.add_middleware(
 )
 
 @app.get("/weather/forecast/{location}")
-def forecast_weather(location: str, start: Optional[str] = Query(None), end: Optional[str] = Query(None)):
+def forecast_weather(location: str):
     try:
-        return get_forecast_by_location(location, start, end)
+        return get_forecast_by_location(location)
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -53,7 +51,7 @@ def get_db():
         yield db
     finally:
         db.close()
-   
+
 @app.get("/weather/current/coords/{lat}/{lon}")
 def weather_by_coords(lat: float, lon: float):
     try:
@@ -77,7 +75,7 @@ def weather_by_coords(lat: float, lon: float):
 
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Weather service unavailable: {e}")
-        
+
 @app.get("/weather/current/{location}")
 def weather_by_location(location: str):
     return get_weather_by_location(location)
@@ -112,21 +110,13 @@ def delete_record(record_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Record not found")
     return {"message": "Record deleted successfully"}
 
-# Additional API endpoints for weather data
-@app.get("/weather/current/{location}")
-def get_current_weather(location: str):
-    weather_data = services.get_weather_by_location(location)
-    if not weather_data:
-        raise HTTPException(status_code=404, detail="Weather data not found")
-    return weather_data
-
 # Export endpoints
 @app.get("/weather/export/{record_id}/{format}")
 def export_record(record_id: int, format: str, db: Session = Depends(get_db)):
     record = crud.get_weather_record(db, record_id=record_id)
     if not record:
         raise HTTPException(status_code=404, detail="Record not found")
-    
+
     return services.export_data(record, format)
 
 # Additional API integrations
@@ -140,13 +130,13 @@ def create_record(
     db: Session = Depends(get_db)
 ):
     try:
-        location_data = validate_location(record.location)
+        location_data = services.validate_location(record.location)
         if not location_data:
             raise HTTPException(
                 status_code=400,
                 detail="Location not found"
             )
-            
+
         # Create weather record with all required fields
         db_record = models.WeatherRecord(
             location=record.location,
@@ -158,12 +148,12 @@ def create_record(
             wind_speed=None,
             conditions=None
         )
-        
+
         db.add(db_record)
         db.commit()
         db.refresh(db_record)
         return db_record
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -172,7 +162,7 @@ def create_record(
             status_code=500,
             detail=f"Internal server error: {str(e)}"
         )
-        
+
 @app.get("/debug-key")
 def debug_key():
     from app.config import settings

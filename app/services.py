@@ -6,42 +6,46 @@ from .config import settings
 from typing import Dict, Any
 from datetime import datetime
 from typing import List, Optional
+from datetime import timezone
 
 import re
 
 _zip_re = re.compile(r"^\d{5}(?:-\d{4})?$")     # 12345   or   12345-6789
 
-def get_forecast_by_location(location: str, start: Optional[str] = None, end: Optional[str] = None) -> List[Dict[str, Any]]:
+def get_forecast_by_location(location: str) -> List[Dict[str, Any]]:
+    """
+    Always return the next ~5 days of 3-hour forecasts from OpenWeather.
+    """
     coords = validate_location(location)
 
     forecast_url = (
-        f"https://api.openweathermap.org/data/2.5/forecast?"
-        f"lat={coords['lat']}&lon={coords['lon']}&appid={settings.openweather_api_key}&units=metric"
+        "https://api.openweathermap.org/data/2.5/forecast"
+        f"?lat={coords['lat']}&lon={coords['lon']}"
+        f"&appid={settings.openweather_api_key}&units=metric"
     )
-    
-    response = requests.get(forecast_url, timeout=10)
-    response.raise_for_status()
+
+    try:
+        response = requests.get(forecast_url, timeout=10)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as exc:
+        raise HTTPException(502, f"Weather service unavailable: {exc}") from exc
+
     forecast_data = response.json()
 
-    start_dt = datetime.fromisoformat(start) if start else None
-    end_dt = datetime.fromisoformat(end) if end else None
-
-    results = []
+    results: list[dict[str, Any]] = []
     for entry in forecast_data.get("list", []):
-        forecast_time = datetime.fromtimestamp(entry["dt"])
-        if start_dt and forecast_time < start_dt:
-            continue
-        if end_dt and forecast_time > end_dt:
-            continue
-
-        results.append({
-            "timestamp": forecast_time.isoformat(),
-            "temperature": entry["main"]["temp"],
-            "humidity": entry["main"]["humidity"],
-            "wind_speed": entry["wind"]["speed"],
-            "conditions": entry["weather"][0]["main"]
-        })
+        forecast_time = datetime.fromtimestamp(entry["dt"], tz=timezone.utc).astimezone()
+        results.append(
+            {
+                "timestamp": forecast_time.isoformat(),
+                "temperature": entry["main"]["temp"],
+                "humidity": entry["main"]["humidity"],
+                "wind_speed": entry["wind"]["speed"],
+                "conditions": entry["weather"][0]["main"],
+            }
+        )
     return results
+
 
 def is_zip(candidate: str) -> bool:
     """Return True if the string looks like a U.S. ZIP code."""
