@@ -60,35 +60,67 @@ export function displayError(message) {
 }
 
 export function displayForecast(data) {
-    const container = document.getElementById("forecast-container");
-    container.innerHTML = ''; // Clear previous forecast
+  const container = document.getElementById("forecast-container");
+  container.innerHTML = "";           // clear old forecast
 
-    if (!data || data.length === 0) {
-        container.innerHTML = '<p>No forecast data available.</p>';
-        return;
-    }
+  if (!Array.isArray(data) || data.length === 0) {
+    container.innerHTML = "<p>No forecast data available.</p>";
+    return;
+  }
 
-    data.forEach(item => {
-        const forecastDiv = document.createElement('div');
-        forecastDiv.classList.add('forecast-day'); // match your CSS class
+  /* ── 1. Group by YYYY-MM-DD ───────────────────────────── */
+  const groups = {};
+  data.forEach(item => {
+    const dayKey = item.timestamp.split("T")[0];   // e.g. "2025-05-23"
+    if (!groups[dayKey]) groups[dayKey] = [];
+    groups[dayKey].push(item);
+  });
 
-        forecastDiv.innerHTML = `
-            <h4>${prettyDate(item.timestamp)}</h4>
-            <p>${getWeatherIcon(item.conditions)} <strong>${item.conditions}</strong></p>
-            <p><strong>Temp:</strong> ${Math.round(item.temperature)}°C</p>
-            <p><strong>Humidity:</strong> ${item.humidity}%</p>
-            <p><strong>Wind:</strong> ${(item.wind_speed * 3.6).toFixed(1)} km/h</p>
-        `;
+  /* ── 2. Build HTML for each date ───────────────────────── */
+  Object.entries(groups).forEach(([dayKey, entries]) => {
+    /* day wrapper */
+    const dayDiv = document.createElement("div");
+    dayDiv.className = "forecast-day";
 
-        container.appendChild(forecastDiv);
+    /* pretty date header */
+    const header = document.createElement("h3");
+    header.textContent = new Date(dayKey).toLocaleDateString(undefined, {
+      weekday: "long",
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+    dayDiv.appendChild(header);
+
+    /* entry grid */
+    const entryGrid = document.createElement("div");
+    entryGrid.className = "forecast-entries";
+
+    entries.forEach(item => {
+      const time = new Date(item.timestamp).toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      const entry = document.createElement("div");
+      entry.className = "forecast-entry";
+      entry.innerHTML = `
+        <span class="fe-time">${time}</span>
+        <span class="fe-icon">${getWeatherIcon(item.conditions)}</span>
+        <span class="fe-cond">${item.conditions}</span>
+        <span class="fe-temp">${Math.round(item.temperature)}°C</span>
+      `;
+      entryGrid.appendChild(entry);
     });
 
-    // Make forecast section visible
-    const forecastSection = document.getElementById("forecast");
-    if (forecastSection.classList.contains("hidden")) {
-        forecastSection.classList.remove("hidden");
-    }
+    dayDiv.appendChild(entryGrid);
+    container.appendChild(dayDiv);
+  });
+
+  /* ── 3. Un-hide the section ───────────────────────────── */
+  document.getElementById("forecast").classList.remove("hidden");
 }
+
 
 function prettyDate(isoDate) {
     try {
