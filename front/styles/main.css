@@ -176,3 +176,21 @@ button:hover {
 #history-list li:hover {
     background: #d0e3ff;
 }
+
+.forecast-controls {
+    margin: 1rem 0;
+}
+
+.forecast-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.forecast-day {
+    background: #f0f0f0;
+    padding: 1rem;
+    border-radius: 10px;
+    width: 150px;
+    text-align: center;
+}

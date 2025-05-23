@@ -33,7 +33,14 @@
 
             <section id="forecast" class="hidden">
                 <h2>5-Day Forecast</h2>
-                <div class="forecast-container" id="forecast-container"></div>
+
+                <div class="forecast-controls">
+                    <input type="date" id="start-date" />
+                    <input type="date" id="end-date" />
+                    <button id="forecast-btn">Get Forecast</button>
+                </div>
+
+                <div id="forecast-container" class="forecast-container"></div>
             </section>
 
             <div id="error-message" class="hidden"></div>

@@ -1,12 +1,47 @@
+#services.py
 import requests
 from fastapi import HTTPException
 from urllib.parse import quote
 from .config import settings
 from typing import Dict, Any
+from datetime import datetime
+from typing import List, Optional
 
 import re
 
 _zip_re = re.compile(r"^\d{5}(?:-\d{4})?$")     # 12345   or   12345-6789
+
+def get_forecast_by_location(location: str, start: Optional[str] = None, end: Optional[str] = None) -> List[Dict[str, Any]]:
+    coords = validate_location(location)
+
+    forecast_url = (
+        f"https://api.openweathermap.org/data/2.5/forecast?"
+        f"lat={coords['lat']}&lon={coords['lon']}&appid={settings.openweather_api_key}&units=metric"
+    )
+    
+    response = requests.get(forecast_url, timeout=10)
+    response.raise_for_status()
+    forecast_data = response.json()
+
+    start_dt = datetime.fromisoformat(start) if start else None
+    end_dt = datetime.fromisoformat(end) if end else None
+
+    results = []
+    for entry in forecast_data.get("list", []):
+        forecast_time = datetime.fromtimestamp(entry["dt"])
+        if start_dt and forecast_time < start_dt:
+            continue
+        if end_dt and forecast_time > end_dt:
+            continue
+
+        results.append({
+            "timestamp": forecast_time.isoformat(),
+            "temperature": entry["main"]["temp"],
+            "humidity": entry["main"]["humidity"],
+            "wind_speed": entry["wind"]["speed"],
+            "conditions": entry["weather"][0]["main"]
+        })
+    return results
 
 def is_zip(candidate: str) -> bool:
     """Return True if the string looks like a U.S. ZIP code."""
@@ -43,7 +78,7 @@ def get_weather_by_location(location: str) -> Dict[str, Any]:
         response.raise_for_status()
         weather_data = response.json()
 
-        # Transform data to match your database model
+        # Transform data to match database model
         return {
             "location": location,
             "temperature": weather_data["main"]["temp"],
@@ -88,7 +123,7 @@ def validate_location(location: str) -> Dict[str, float]:
 
     location = location.strip()
 
-    # 3a. ZIP-code path
+    # ZIP-code path
     if is_zip(location):
         try:
             return lookup_zip(location)
@@ -97,11 +132,11 @@ def validate_location(location: str) -> Dict[str, float]:
         except KeyError:
             raise HTTPException(502, "Incomplete ZIP response")
 
-    # 3b. Fallback: original city/place path
+    # Original city/place path
     try:
         url = (
             "http://api.openweathermap.org/geo/1.0/direct"
-            f"?q={quote(location)}&limit=1&appid={key}"
+            f"?q={quote(location)}&limit=5&appid={key}"
         )
         r = requests.get(url, timeout=10)
         r.raise_for_status()

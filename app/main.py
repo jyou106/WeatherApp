@@ -1,22 +1,19 @@
 # main.py
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Query  
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-
 from app.database import SessionLocal, engine
 from app import models, schemas, crud, services
-from typing import List
-from app.services import validate_location 
-from app.services import get_weather_by_location 
-
-models.Base.metadata.create_all(bind=engine)
-
-from fastapi import FastAPI, HTTPException
+from typing import List, Optional
+from app.services import get_weather_by_location, get_forecast_by_location
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import os
 import requests
 from .config import settings
+from fastapi.responses import FileResponse
+
+models.Base.metadata.create_all(bind=engine)
 
 BASE_DIR = Path(__file__).resolve().parent.parent      # WeatherApp/
 
@@ -25,7 +22,6 @@ app = FastAPI()
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "front")
 app.mount("/front", StaticFiles(directory=FRONTEND_DIR), name="front")
 
-from fastapi.responses import FileResponse
 
 @app.get("/")
 def serve_frontend():
@@ -40,6 +36,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/weather/forecast/{location}")
+def forecast_weather(location: str, start: Optional[str] = Query(None), end: Optional[str] = Query(None)):
+    try:
+        return get_forecast_by_location(location, start, end)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(500, f"Unexpected error: {str(e)}")
 
 # Dependency
 def get_db():
@@ -114,13 +119,6 @@ def get_current_weather(location: str):
     if not weather_data:
         raise HTTPException(status_code=404, detail="Weather data not found")
     return weather_data
-
-@app.get("/weather/forecast/{location}")
-def get_forecast(location: str, days: int = 5):
-    forecast = services.get_weather_forecast(location, days)
-    if not forecast:
-        raise HTTPException(status_code=404, detail="Forecast not found")
-    return forecast
 
 # Export endpoints
 @app.get("/weather/export/{record_id}/{format}")

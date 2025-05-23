@@ -58,3 +58,40 @@ export function displayError(message) {
         }, 5000);
     }
 }
+
+export function displayForecast(data) {
+    const container = document.getElementById("forecast-container");
+    container.innerHTML = ''; // Clear any previous forecast
+
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p>No forecast data available.</p>';
+        return;
+    }
+
+    data.forEach(item => {
+        const forecastDiv = document.createElement('div');
+        forecastDiv.classList.add('forecast-item');
+
+        forecastDiv.innerHTML = `
+            <h4>${prettyDate(item.timestamp)}</h4>
+            <p><strong>Temp:</strong> ${item.temperature}°C</p>
+            <p><strong>Humidity:</strong> ${item.humidity}%</p>
+            <p><strong>Wind:</strong> ${item.wind_speed} m/s</p>
+            <p><strong>Conditions:</strong> ${item.conditions}</p>
+        `;
+
+        container.appendChild(forecastDiv);
+    });
+}
+
+function prettyDate(isoDate) {
+    const date = new Date(isoDate);
+    return date.toLocaleString(undefined, {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}

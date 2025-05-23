@@ -1,5 +1,5 @@
-import { fetchWeather, fetchWeatherByCoords } from './api.js';
-import { displayCurrentWeather, displayError } from './dom.js';
+import { fetchWeather, fetchWeatherByCoords, fetchForecast } from './api.js';
+import { displayCurrentWeather, displayError,displayForecast } from './dom.js';
 
 // Debugging - verify script is loading
 console.log("Weather app initialized");
@@ -29,7 +29,27 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Setup error:", error);
         displayError("Failed to initialize app");
     }
+    document.getElementById('forecast-btn').addEventListener('click', handleForecast);
 });
+
+async function handleForecast() {
+    const location = document.getElementById('location-input').value.trim();
+    const start = document.getElementById('start-date').value;
+    const end = document.getElementById('end-date').value;
+
+    if (!location) {
+        displayError("Please enter a location for forecast");
+        return;
+    }
+
+    try {
+        const forecastData = await fetchForecast(location, start, end);
+        displayForecast(forecastData);
+    } catch (err) {
+        displayError(err.message || "Failed to load forecast");
+    }
+}
+
 
 async function handleSearch() {
     console.log("Search initiated");
