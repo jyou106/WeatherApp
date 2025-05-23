@@ -1,58 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather App</title>
-    <link rel="stylesheet" href="/front/styles/main.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather App</title>
+  <link rel="stylesheet" href="/front/styles/main.css" />
 </head>
 <body>
-    <div class="weather-app">
-        <header>
-            <h1>Weather Forecast</h1>
-            <div class="search-container">
-                <input type="text" id="location-input" placeholder="City or ZIP">
-                <button id="search-btn">Search</button>
-                <button id="current-location-btn">📍 Use My Location</button>
-            </div>
-        </header>
+  <div class="weather-app">
+    <header>
+      <h1>Weather Forecast</h1>
+      <div class="search-container">
+        <input type="text" id="location-input" placeholder="City or ZIP" />
+        <button id="search-btn">Search</button>
+        <button id="current-location-btn">📍 Use My Location</button>
+      </div>
+    </header>
 
-        <main>
-            <section id="current-weather" class="card hidden">
-                <div class="weather-main">
-                    <h2 id="location-name">--</h2>
-                    <div id="weather-icon">☀️</div>
-                    <p id="temperature">--°C</p>
-                </div>
-                <div class="weather-details">
-                    <p>Humidity: <span id="humidity">--</span>%</p>
-                    <p>Wind: <span id="wind-speed">--</span> km/h</p>
-                    <p>Feels like: <span id="feels-like">--</span>°C</p>
-                </div>
-            </section>
+    <main>
+      <!-- Current weather -->
+      <section id="current-weather" class="card hidden">
+        <div class="weather-main">
+          <h2 id="location-name">--</h2>
+          <div id="weather-icon">☀️</div>
+          <p id="temperature">--°C</p>
+        </div>
+        <div class="weather-details">
+          <p>Humidity: <span id="humidity">--</span></p>
+          <p>Wind: <span id="wind-speed">--</span> km/h</p>
+          <p>Feels like: <span id="feels-like">--</span>°C</p>
+        </div>
+      </section>
 
-            <section id="forecast-section" class="hidden">
-                <h2>5-Day Forecast</h2>
+      <!-- Forecast controls + results -->
+      <section>
+        <h2>5-Day Forecast</h2>
 
-                <div class="forecast-controls">
-                    <input type="date" id="start-date" />
-                    <input type="date" id="end-date" />
-                    <button id="forecast-btn">Get Forecast</button>
-                </div>
+        <div class="forecast-controls">
+          <input type="date" id="start-date" />
+          <input type="date" id="end-date" />
+          <button id="forecast-btn">Get Forecast</button>
+        </div>
 
-                <div id="forecast-container" class="forecast-container"></div>
-            </section>
+        <!-- This container starts hidden; JS will remove .hidden -->
+        <section id="forecast" class="hidden">
+          <div id="forecast-container" class="forecast-container"></div>
+        </section>
+      </section>
 
-            <div id="error-message" class="hidden"></div>
-        </main>
+      <div id="error-message" class="hidden"></div>
+    </main>
+  </div>
 
-    </div>
+  <!-- loading spinner -->
+  <div id="loading" class="hidden">
+    <div class="loader"></div>
+    <p>Loading weather data...</p>
+  </div>
 
-    <!-- Loading spinner -->
-    <div id="loading" class="hidden">
-        <div class="loader"></div>
-        <p>Loading weather data...</p>
-    </div>
+  <!-- search history -->
+  <div id="search-history" class="hidden">
+    <h3>Recent Searches</h3>
+    <ul id="history-list"></ul>
+  </div>
 
-    <!-- Search history -->
-    <div id="search-history" class="hidden"
+  <script type="module" src="/front/scripts/app.js"></script>
+</body>
+</html>
