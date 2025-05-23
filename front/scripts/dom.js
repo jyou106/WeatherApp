@@ -14,7 +14,7 @@ function getWeatherIcon(condition) {
 
 export function displayCurrentWeather(data) {
     console.log("Displaying data:", data); // Debug log
-    
+
     if (!data) {
         console.error('No data received');
         return;
@@ -22,13 +22,13 @@ export function displayCurrentWeather(data) {
 
     // Convert wind speed from m/s to km/h
     const windSpeedKmh = data.wind_speed ? Math.round(data.wind_speed * 3.6) : '--';
-    
+
     // Update all elements
     const elements = {
         'location-name': data.location || '--',
         'temperature': data.temperature ? `${Math.round(data.temperature)}°C` : '--°C',
-        'humidity': data.humidity ? `${data.humidity}` : '--%',
-        'wind-speed': windSpeedKmh !== '--' ? `${windSpeedKmh}` : '-- km/h',
+        'humidity': (data.humidity !== undefined && data.humidity !== null) ? `${data.humidity}%` : '--%',
+        'wind-speed': windSpeedKmh,
         'feels-like': data.temperature ? `${Math.round(data.temperature)}` : '--°C',
         'weather-icon': getWeatherIcon(data.conditions)
     };
@@ -42,7 +42,7 @@ export function displayCurrentWeather(data) {
             console.error(`Element #${id} not found!`);
         }
     }
-    
+
     // Make visible
     document.getElementById('current-weather').classList.remove('hidden');
 }
@@ -52,7 +52,7 @@ export function displayError(message) {
     if (errorElement) {
         errorElement.textContent = message;
         errorElement.classList.remove('hidden');
-        
+
         setTimeout(() => {
             errorElement.classList.add('hidden');
         }, 5000);
@@ -74,10 +74,10 @@ export function displayForecast(data) {
 
         forecastDiv.innerHTML = `
             <h4>${prettyDate(item.timestamp)}</h4>
-            <p><strong>Temp:</strong> ${item.temperature}°C</p>
+            <p>${getWeatherIcon(item.conditions)} <strong>${item.conditions}</strong></p>
+            <p><strong>Temp:</strong> ${Math.round(item.temperature)}°C</p>
             <p><strong>Humidity:</strong> ${item.humidity}%</p>
-            <p><strong>Wind:</strong> ${item.wind_speed} m/s</p>
-            <p><strong>Conditions:</strong> ${item.conditions}</p>
+            <p><strong>Wind:</strong> ${(item.wind_speed * 3.6).toFixed(1)} km/h</p>
         `;
 
         container.appendChild(forecastDiv);
@@ -90,15 +90,19 @@ export function displayForecast(data) {
     }
 }
 
-
 function prettyDate(isoDate) {
-    const date = new Date(isoDate);
-    return date.toLocaleString(undefined, {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+    try {
+        const date = new Date(isoDate);
+        return date.toLocaleString(undefined, {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (err) {
+        console.error("Invalid date:", isoDate);
+        return isoDate;
+    }
 }

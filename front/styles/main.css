@@ -71,20 +71,29 @@ button:hover {
     gap: 10px;
 }
 
+.forecast-controls {
+    margin: 1rem 0;
+}
+
 .forecast-container {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .forecast-day {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: #f9fafb;
+    padding: 1rem;
+    border-radius: 10px;
+    width: 150px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.forecast-day p:first-of-type {
+    font-size: 1.8rem;
+    margin: 0.2rem 0 0.6rem;
 }
 
 .hidden {
@@ -105,17 +114,16 @@ button:hover {
         flex-direction: row;
         justify-content: center;
     }
-    
+
     .weather-details {
         grid-template-columns: repeat(4, 1fr);
     }
-    
+
     .forecast-container {
         flex-direction: row;
-        flex-wrap: wrap;
         justify-content: space-between;
     }
-    
+
     .forecast-day {
         flex-direction: column;
         width: calc(20% - 10px);
@@ -126,6 +134,10 @@ button:hover {
 @media (min-width: 1024px) {
     .weather-app {
         padding: 40px;
+    }
+
+    .forecast-container {
+        row-gap: 2rem;
     }
 }
 
@@ -175,22 +187,4 @@ button:hover {
 
 #history-list li:hover {
     background: #d0e3ff;
-}
-
-.forecast-controls {
-    margin: 1rem 0;
-}
-
-.forecast-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.forecast-day {
-    background: #f0f0f0;
-    padding: 1rem;
-    border-radius: 10px;
-    width: 150px;
-    text-align: center;
 }
