@@ -1,4 +1,4 @@
-const API_BASE_URL = window.location.origin;   // ✅ works locally & on Render
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
 
 export async function fetchWeather(location) {
     try {

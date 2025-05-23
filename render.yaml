@@ -6,4 +6,8 @@ services:
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
     envVars:
       - key: OPENWEATHER_API_KEY
-      
+  
+  - type: web
+    name: weather-frontend
+    env: static
+    staticPublishPath: front
