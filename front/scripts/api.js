@@ -62,10 +62,9 @@ export async function fetchForecast(location) {
   }
 }
 
-const API_KEY = 'YOUR_OPENWEATHERMAP_API_KEY';
-
 export async function fetchLocationSuggestions(query) {
-  const response = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=5&appid=${API_KEY}`);
+  const url = `${API_BASE_URL}/location/suggest?q=${encodeURIComponent(query)}`;
+  const response = await fetch(url);
   if (!response.ok) throw new Error("Failed to fetch location suggestions");
   return await response.json();
 }

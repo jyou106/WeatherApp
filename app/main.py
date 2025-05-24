@@ -14,6 +14,8 @@ import requests
 from .config import settings
 from fastapi.responses import FileResponse
 import time
+from urllib.parse import quote
+import requests
 
 # Configure logging
 logging.basicConfig(
@@ -69,6 +71,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/location/suggest")
+def suggest_locations(q: str = Query(..., min_length=2)):
+    url = (
+        "http://api.openweathermap.org/geo/1.0/direct"
+        f"?q={quote(q)}&limit=5&appid={settings.openweather_api_key}"
+    )
+    try:
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        return resp.json()
+    except requests.exceptions.RequestException as exc:
+        raise HTTPException(502, f"Suggestion service unavailable: {exc}") from exc
 
 @app.get("/weather/forecast/{location}")
 def forecast_weather(location: str):
