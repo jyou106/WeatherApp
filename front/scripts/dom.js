@@ -7,10 +7,18 @@ function getWeatherIcon(condition) {
         'Thunderstorm': '⛈️',
         'Snow': '❄️',
         'Mist': '🌫️',
-        'Fog': '🌁'
+        'Fog': '🌁',
+        'Haze': '🌫️',
+        'Smoke': '🔥',
+        'Dust': '🌪️',
+        'Sand': '🏜️',
+        'Ash': '🌋',
+        'Squall': '💨',
+        'Tornado': '🌪️'
     };
-    return icons[condition] || '🌈';
+    return icons[condition] || '🌈'; // fallback icon
 }
+
 
 export function displayCurrentWeather(data) {
     console.log("Displaying data:", data); // Debug log
@@ -34,14 +42,24 @@ export function displayCurrentWeather(data) {
             : '--°C / --°F',
         'humidity': (data.humidity !== undefined && data.humidity !== null) ? `${data.humidity}%` : '--%',
         'wind-speed': windSpeedKmh,
-        'weather-icon': getWeatherIcon(data.conditions)
+        'weather-icon': data.conditions 
+            ? (() => {
+                const icon = getWeatherIcon(data.conditions);
+                return `<span title="${data.conditions}">${icon}</span>`;
+            })()
+            : '🌈',
+
     };
 
     // Update DOM
     for (const [id, value] of Object.entries(elements)) {
         const element = document.getElementById(id);
         if (element) {
-            element.textContent = value;
+            if (id === 'weather-icon') {
+                element.innerHTML = value; // use innerHTML to include span with title
+            } else {
+                element.textContent = value;
+            }
         } else {
             console.error(`Element #${id} not found!`);
         }
@@ -110,7 +128,7 @@ export function displayForecast(data) {
       entry.className = "forecast-entry";
       entry.innerHTML = `
         <span class="fe-time">${time}</span>
-        <span class="fe-icon">${getWeatherIcon(item.conditions)}</span>
+        <span class="fe-icon" title="${item.conditions}">${getWeatherIcon(item.conditions)}</span>
         <span class="fe-cond">${item.conditions}</span>
         <span class="fe-temp">${Math.round(item.temperature_c)}°C / ${Math.round(item.temperature_f)}°F</span>
       `;
