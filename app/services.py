@@ -40,13 +40,16 @@ def get_weather_by_location(location: str) -> Dict[str, Any]:
 
     data = r.json()
     temp_c = data["main"]["temp"]
+    feels_like_c = data["main"].get("feels_like")
 
     return {
         "location": location,
         "temperature_c": temp_c,
         "temperature_f": c_to_f(temp_c),
+        "feels_like_c": feels_like_c,
+        "feels_like_f": c_to_f(feels_like_c) if feels_like_c is not None else None,
         "humidity": data["main"]["humidity"],
-        "wind_speed_ms": data["wind"]["speed"],
+        "wind_speed": data["wind"]["speed"],  # or convert to km/h if needed
         "conditions": data["weather"][0]["main"],
         "latitude": coords["lat"],
         "longitude": coords["lon"],
