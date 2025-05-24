@@ -1,22 +1,20 @@
 function getWeatherIcon(condition) {
-    const icons = {
-        'Clear': '☀️',
-        'Clouds': '☁️',
-        'Rain': '🌧️',
-        'Drizzle': '🌦️',
-        'Thunderstorm': '⛈️',
-        'Snow': '❄️',
-        'Mist': '🌫️',
-        'Fog': '🌁',
-        'Haze': '🌫️',
-        'Smoke': '🔥',
-        'Dust': '🌪️',
-        'Sand': '🏜️',
-        'Ash': '🌋',
-        'Squall': '💨',
-        'Tornado': '🌪️'
-    };
-    return icons[condition] || '🌈'; // fallback icon
+  const normalized = condition.toLowerCase();
+
+  if (normalized.includes("clear")) return { icon: "☀️", title: "Clear sky" };
+  if (normalized.includes("cloud")) return { icon: "☁️", title: "Cloudy" };
+  if (normalized.includes("rain")) return { icon: "🌧️", title: "Rain" };
+  if (normalized.includes("thunder")) return { icon: "⛈️", title: "Thunderstorm" };
+  if (normalized.includes("drizzle")) return { icon: "🌦️", title: "Drizzle" };
+  if (normalized.includes("snow")) return { icon: "❄️", title: "Snow" };
+  if (normalized.includes("mist")) return { icon: "🌫️", title: "Mist" };
+  if (normalized.includes("fog")) return { icon: "🌫️", title: "Fog" };
+  if (normalized.includes("smoke")) return { icon: "🌫️", title: "Smoke" };
+  if (normalized.includes("haze")) return { icon: "🌫️", title: "Haze" };
+  if (normalized.includes("dust")) return { icon: "🌫️", title: "Dust" };
+  if (normalized.includes("tornado")) return { icon: "🌪️", title: "Tornado" };
+  if (normalized.includes("sand") || normalized.includes("ash")) return { icon: "🌬️", title: "Sand/Ash" };
+  return { icon: "❓", title: "Unknown weather condition" };
 }
 
 
@@ -28,27 +26,31 @@ export function displayCurrentWeather(data) {
         return;
     }
 
+    // Debug logs for wind speed and feels like
+    console.log('Wind speed:', data.wind_speed);
+    console.log('Feels like (C):', data.feels_like_c);
+    console.log('Feels like (F):', data.feels_like_f);
+
     // Convert wind speed from m/s to km/h
     const windSpeedKmh = data.wind_speed ? Math.round(data.wind_speed * 3.6) : '--';
 
     // Update all elements
     const elements = {
         'location-name': data.location || '--',
-        'temperature': data.temperature_c !== undefined
+        'temperature': data.temperature_c !== undefined && data.temperature_f !== undefined
             ? `${Math.round(data.temperature_c)}°C / ${Math.round(data.temperature_f)}°F`
             : '--°C / --°F',
-        'feels-like': data.feels_like_c !== undefined
+        'feels-like': data.feels_like_c !== undefined && data.feels_like_f !== undefined
             ? `${Math.round(data.feels_like_c)}°C / ${Math.round(data.feels_like_f)}°F`
             : '--°C / --°F',
         'humidity': (data.humidity !== undefined && data.humidity !== null) ? `${data.humidity}%` : '--%',
-        'wind-speed': windSpeedKmh,
+        'wind-speed': windSpeedKmh !== '--' ? `${windSpeedKmh} km/h` : '--',
         'weather-icon': data.conditions 
             ? (() => {
                 const icon = getWeatherIcon(data.conditions);
-                return `<span title="${data.conditions}">${icon}</span>`;
+                return `<span title="${icon.title}">${icon.icon}</span>`;
             })()
             : '🌈',
-
     };
 
     // Update DOM
@@ -56,7 +58,7 @@ export function displayCurrentWeather(data) {
         const element = document.getElementById(id);
         if (element) {
             if (id === 'weather-icon') {
-                element.innerHTML = value; // use innerHTML to include span with title
+                element.innerHTML = value; // use innerHTML to include span with title and icon
             } else {
                 element.textContent = value;
             }
@@ -68,6 +70,7 @@ export function displayCurrentWeather(data) {
     // Make visible
     document.getElementById('current-weather').classList.remove('hidden');
 }
+
 
 export function displayError(message) {
     const errorElement = document.getElementById('error-message');
