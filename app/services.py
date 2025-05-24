@@ -1,152 +1,169 @@
-#services.py
+import re
+from datetime import datetime, timezone, date
+from typing import List, Dict, Any
+
 import requests
 from fastapi import HTTPException
 from urllib.parse import quote
+
 from .config import settings
-from typing import Dict, Any
-from datetime import datetime
-from typing import List, Optional
-from datetime import timezone
 
-import re
+# ──────────────────────────────────────────────────────────────
+# Regex helper (US ZIP‑code test)
+_zip_re = re.compile(r"^\d{5}(?:-\d{4})?$")
 
-_zip_re = re.compile(r"^\d{5}(?:-\d{4})?$")     # 12345   or   12345-6789
 
-def get_forecast_by_location(location: str) -> List[Dict[str, Any]]:
-    """
-    Always return the next ~5 days of 3-hour forecasts from OpenWeather.
-    """
+def c_to_f(c: float) -> float:
+    """Convert °C to °F (rounded to one decimal)."""
+    return round(c * 9 / 5 + 32, 1)
+
+# ---------------------------------------------------------------------------
+# 1.  CURRENT CONDITIONS
+# ---------------------------------------------------------------------------
+
+def get_weather_by_location(location: str) -> Dict[str, Any]:
+    """Return current conditions (both °C and °F)."""
+
     coords = validate_location(location)
 
-    forecast_url = (
+    url = (
+        "https://api.openweathermap.org/data/2.5/weather"
+        f"?lat={coords['lat']}&lon={coords['lon']}"
+        f"&appid={settings.openweather_api_key}&units=metric"
+    )
+
+    try:
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+    except requests.exceptions.RequestException as exc:
+        raise HTTPException(502, f"Weather service unavailable: {exc}") from exc
+
+    data = r.json()
+    temp_c = data["main"]["temp"]
+
+    return {
+        "location": location,
+        "temperature_c": temp_c,
+        "temperature_f": c_to_f(temp_c),
+        "humidity": data["main"]["humidity"],
+        "wind_speed_ms": data["wind"]["speed"],
+        "conditions": data["weather"][0]["main"],
+        "latitude": coords["lat"],
+        "longitude": coords["lon"],
+    }
+
+# ---------------------------------------------------------------------------
+# 2.  5‑DAY / 3‑HOUR FORECAST
+# ---------------------------------------------------------------------------
+
+def get_forecast_by_location(location: str) -> List[Dict[str, Any]]:
+    """Return the next ≈5 days (40 slots) of 3‑hour forecasts."""
+
+    coords = validate_location(location)
+
+    url = (
         "https://api.openweathermap.org/data/2.5/forecast"
         f"?lat={coords['lat']}&lon={coords['lon']}"
         f"&appid={settings.openweather_api_key}&units=metric"
     )
 
     try:
-        response = requests.get(forecast_url, timeout=10)
-        response.raise_for_status()
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
     except requests.exceptions.RequestException as exc:
         raise HTTPException(502, f"Weather service unavailable: {exc}") from exc
 
-    forecast_data = response.json()
-
+    data = r.json()
     results: list[dict[str, Any]] = []
-    for entry in forecast_data.get("list", []):
-        forecast_time = datetime.fromtimestamp(entry["dt"], tz=timezone.utc).astimezone()
+
+    for slot in data.get("list", []):
+        ts = datetime.fromtimestamp(slot["dt"], tz=timezone.utc).astimezone()
+        temp_c = slot["main"]["temp"]
         results.append(
             {
-                "timestamp": forecast_time.isoformat(),
-                "temperature": entry["main"]["temp"],
-                "humidity": entry["main"]["humidity"],
-                "wind_speed": entry["wind"]["speed"],
-                "conditions": entry["weather"][0]["main"],
+                "timestamp": ts.isoformat(),
+                "temperature_c": temp_c,
+                "temperature_f": c_to_f(temp_c),
+                "humidity": slot["main"]["humidity"],
+                "wind_speed_ms": slot["wind"]["speed"],
+                "conditions": slot["weather"][0]["main"],
             }
         )
     return results
 
+# ---------------------------------------------------------------------------
+# 3.  TODAY‑ONLY FORECAST (optional helper)
+# ---------------------------------------------------------------------------
 
-def is_zip(candidate: str) -> bool:
-    """Return True if the string looks like a U.S. ZIP code."""
-    return bool(_zip_re.fullmatch(candidate.strip()))
+def get_today_forecast(location: str) -> Dict[str, Any]:
+    """Return every 3‑hour slot **for today** plus min / max temps."""
 
+    today_iso = date.today().isoformat()  # YYYY‑MM‑DD
+    slots = [s for s in get_forecast_by_location(location) if s["timestamp"].startswith(today_iso)]
 
-def get_weather_by_location(location: str) -> Dict[str, Any]:
-    """
-    Get complete weather data for a location using OpenWeatherMap API
-    Returns:
-        Dictionary containing weather data with keys:
-        - location (str)
-        - temperature (float)
-        - humidity (float)
-        - wind_speed (float)
-        - conditions (str)
-        - latitude (float)
-        - longitude (float)
-    """
-    try:
-        # First validate location and get coordinates
-        coords = validate_location(location)
-        if not coords:
-            raise HTTPException(status_code=404, detail="Location not found")
+    if not slots:
+        raise HTTPException(404, "No forecast slots for today")
 
-        # Get weather data from OpenWeather API
-        weather_url = (
-            f"https://api.openweathermap.org/data/2.5/weather?"
-            f"lat={coords['lat']}&lon={coords['lon']}&"
-            f"appid={settings.openweather_api_key}&units=metric"
-        )
-        
-        response = requests.get(weather_url, timeout=10)
-        response.raise_for_status()
-        weather_data = response.json()
+    min_c = min(s["temperature_c"] for s in slots)
+    max_c = max(s["temperature_c"] for s in slots)
 
-        # Transform data to match database model
-        return {
-            "location": location,
-            "temperature": weather_data["main"]["temp"],
-            "humidity": weather_data["main"]["humidity"],
-            "wind_speed": weather_data["wind"]["speed"],
-            "conditions": weather_data["weather"][0]["main"],
-            "latitude": coords["lat"],
-            "longitude": coords["lon"]
-        }
+    return {
+        "date": today_iso,
+        "min_c": min_c,
+        "min_f": c_to_f(min_c),
+        "max_c": max_c,
+        "max_f": c_to_f(max_c),
+        "slots": slots,
+    }
 
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Weather service unavailable: {str(e)}"
-        )
-    except KeyError as e:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Unexpected API response format: {str(e)}"
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unexpected error: {str(e)}"
-        )
+# ---------------------------------------------------------------------------
+# 4.  LOCATION HELPERS
+# ---------------------------------------------------------------------------
+
+def is_zip(txt: str) -> bool:
+    """Return True if *txt* looks like a US ZIP code."""
+    return bool(_zip_re.fullmatch(txt.strip()))
+
 
 def lookup_zip(zip_code: str, country: str = "us") -> Dict[str, float]:
     url = (
-        f"http://api.openweathermap.org/geo/1.0/zip"
+        "http://api.openweathermap.org/geo/1.0/zip"
         f"?zip={zip_code},{country}&appid={settings.openweather_api_key}"
     )
     r = requests.get(url, timeout=10)
     r.raise_for_status()
-    data = r.json()           # raises if invalid JSON
+    data = r.json()
     return {"lat": float(data["lat"]), "lon": float(data["lon"])}
 
 
-def validate_location(location: str) -> Dict[str, float]:
+def validate_location(raw: str) -> Dict[str, float]:
+    """Resolve city name / landmark / ZIP → {lat, lon}."""
+
     key = settings.openweather_api_key
     if not key or key == "your_openweather_api_key":
-        raise HTTPException(500, "API key mis-configured")
+        raise HTTPException(500, "API key mis‑configured")
 
-    location = location.strip()
+    query = raw.strip()
 
-    # ZIP-code path
-    if is_zip(location):
+    # 1) ZIP code path
+    if is_zip(query):
         try:
-            return lookup_zip(location)
-        except requests.exceptions.RequestException as e:
-            raise HTTPException(502, f"Weather service unavailable: {e}")
-        except KeyError:
-            raise HTTPException(502, "Incomplete ZIP response")
+            return lookup_zip(query)
+        except requests.exceptions.RequestException as exc:
+            raise HTTPException(502, f"Weather service unavailable: {exc}") from exc
 
-    # Original city/place path
+    # 2) Generic place / landmark
     try:
         url = (
             "http://api.openweathermap.org/geo/1.0/direct"
-            f"?q={quote(location)}&limit=5&appid={key}"
+            f"?q={quote(query)}&limit=5&appid={key}"
         )
         r = requests.get(url, timeout=10)
         r.raise_for_status()
         data = r.json()
         if not data:
             raise HTTPException(404, "Location not found")
-        return {"lat": float(data[0]["lat"]), "lon": float(data[0]["lon"])}
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(502, f"Weather service unavailable: {e}")
+        hit = data[0]  # first hit (landmark, city, etc.)
+        return {"lat": float(hit["lat"]), "lon": float(hit["lon"])}
+    except requests.exceptions.RequestException as exc:
+        raise HTTPException(502, f"Weather service unavailable: {exc}") from exc

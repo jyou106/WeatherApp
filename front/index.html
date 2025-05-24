@@ -24,27 +24,27 @@
         <div class="weather-main">
           <h2 id="location-name">--</h2>
           <div id="weather-icon">☀️</div>
-          <p id="temperature">--°C</p>
+          <p id="temperature">--°C / --°F</p>
         </div>
         <div class="weather-details">
-          <p>Humidity: <span id="humidity">--</span></p>
-          <p>Wind: <span id="wind-speed">--</span> km/h</p>
-          <p>Feels like: <span id="feels-like">--</span>°C</p>
+          <p>Humidity: <span id="humidity">--%</span></p>
+          <p>Wind: <span id="wind-speed">-- km/h</span></p>
+          <p>Feels like: <span id="feels-like">--°C / --°F</span></p>
         </div>
       </section>
 
       <!-- Forecast controls + results -->
       <section id="forecast-section" class="hidden">
-            <h2>5-Day Forecast</h2>
+        <h2>5-Day Forecast</h2>
 
-            <div class="forecast-controls">
-                <!-- date inputs and forecast button if you still want them -->
-            </div>
+        <div class="forecast-controls">
+          <!-- Optional: add date filters or forecast refresh -->
+        </div>
 
-            <section id="forecast" class="hidden">
-                <div id="forecast-container" class="forecast-container"></div>
-            </section>
+        <section id="forecast" class="hidden">
+          <div id="forecast-container" class="forecast-container"></div>
         </section>
+      </section>
 
       <div id="error-message" class="hidden"></div>
     </main>

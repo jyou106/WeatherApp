@@ -109,6 +109,11 @@ def get_db():
         logger.debug("Closing DB session")
         db.close()
 
+@app.get("/weather/today/{location}")
+def today(location: str):
+    return services.get_today_forecast(location)
+
+
 @app.get("/weather/current/coords/{lat}/{lon}")
 def weather_by_coords(lat: float, lon: float):
     logger.info(f"Fetching weather for coordinates: {lat},{lon}")

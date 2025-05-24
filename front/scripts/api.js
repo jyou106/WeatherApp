@@ -68,3 +68,32 @@ export async function fetchLocationSuggestions(query) {
   if (!response.ok) throw new Error("Failed to fetch location suggestions");
   return await response.json();
 }
+
+export async function fetchTodayForecast(location) {
+  try {
+    document.getElementById("loading").classList.remove("hidden");
+
+    const url = `${API_BASE_URL}/weather/forecast/today/${encodeURIComponent(location)}`;
+    console.log("Fetching today's forecast:", url);
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      let msg;
+      try {
+        const data = await response.json();
+        msg = data.detail || JSON.stringify(data);
+      } catch {
+        msg = await response.text();
+      }
+      throw new Error(`API Error: ${msg}`);
+    }
+
+    return await response.json();
+  } catch (err) {
+    console.error("Fetch today's forecast failed:", err);
+    throw err;
+  } finally {
+    document.getElementById("loading").classList.add("hidden");
+  }
+}
+
