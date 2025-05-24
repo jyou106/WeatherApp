@@ -11,7 +11,8 @@
     <header>
       <h1>Weather Forecast</h1>
       <div class="search-container">
-        <input type="text" id="location-input" placeholder="City or ZIP" />
+        <input type="text" id="location-input" placeholder="City or ZIP" list="suggestions" />
+        <datalist id="suggestions"></datalist>
         <button id="search-btn">Search</button>
         <button id="current-location-btn">📍 Use My Location</button>
       </div>
