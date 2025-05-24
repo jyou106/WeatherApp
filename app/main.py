@@ -150,41 +150,16 @@ def weather_by_coords(lat: float, lon: float):
 def weather_by_location(location: str):
     logger.info(f"Fetching current weather for: {location}")
     try:
-        coords = services.parse_location_input(location)  # this handles zip, coords, city, etc
-
-        weather_url = (
-            f"https://api.openweathermap.org/data/2.5/weather?"
-            f"lat={coords['lat']}&lon={coords['lon']}&appid={settings.openweather_api_key}&units=metric"
-        )
-        logger.debug(f"Requesting OpenWeather API: {weather_url}")
-        
-        response = requests.get(weather_url)
-        response.raise_for_status()
-        data = response.json()
-        logger.debug(f"OpenWeather response: {data}")
-
-        temp_c = data["main"]["temp"]
-
-        return {
-            "location": location,
-            "temperature_c": temp_c,
-            "temperature_f": services.c_to_f(temp_c),
-            "humidity": data["main"]["humidity"],
-            "wind_speed_ms": data["wind"]["speed"],
-            "conditions": data["weather"][0]["main"],
-            "latitude": coords["lat"],
-            "longitude": coords["lon"],
-        }
-
-    except requests.exceptions.RequestException as e:
-        logger.error(f"OpenWeather API request failed: {str(e)}")
-        raise HTTPException(status_code=502, detail=f"Weather service unavailable: {e}")
+        weather = services.get_weather_by_location(location)
+        logger.debug(f"Weather data: {weather}")
+        return weather
     except HTTPException as e:
         logger.error(f"Weather lookup failed for {location}: {e.detail}")
         raise e
     except Exception as e:
         logger.exception(f"Unexpected error fetching weather for {location}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
 
 
 @app.get("/weather/", response_model=List[schemas.WeatherRecord])
