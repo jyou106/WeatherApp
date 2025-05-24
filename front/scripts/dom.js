@@ -32,7 +32,15 @@ export function displayCurrentWeather(data) {
     console.log('Feels like (F):', data.feels_like_f);
 
     // Convert wind speed from m/s to km/h
-    const windSpeedKmh = data.wind_speed ? Math.round(data.wind_speed * 3.6) : '--';
+    const windSpeedKmh = (data.wind_speed !== undefined && data.wind_speed !== null)
+        ? Math.round(data.wind_speed * 3.6)
+        : '--';
+
+    const feelsLikeText = (data.feels_like_c !== undefined && data.feels_like_c !== null && 
+                      data.feels_like_f !== undefined && data.feels_like_f !== null)
+    ? `${Math.round(data.feels_like_c)}°C / ${Math.round(data.feels_like_f)}°F`
+    : '--°C / --°F';
+
 
     // Update all elements
     const elements = {
@@ -40,9 +48,7 @@ export function displayCurrentWeather(data) {
         'temperature': data.temperature_c !== undefined && data.temperature_f !== undefined
             ? `${Math.round(data.temperature_c)}°C / ${Math.round(data.temperature_f)}°F`
             : '--°C / --°F',
-        'feels-like': data.feels_like_c !== undefined && data.feels_like_f !== undefined
-            ? `${Math.round(data.feels_like_c)}°C / ${Math.round(data.feels_like_f)}°F`
-            : '--°C / --°F',
+        'feels-like': feelsLikeText,
         'humidity': (data.humidity !== undefined && data.humidity !== null) ? `${data.humidity}%` : '--%',
         'wind-speed': windSpeedKmh !== '--' ? `${windSpeedKmh} km/h` : '--',
         'weather-icon': data.conditions 
