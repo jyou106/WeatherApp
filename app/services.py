@@ -140,13 +140,24 @@ def lookup_zip(zip_code: str, country: str = "us") -> Dict[str, float]:
 
 
 def validate_location(raw: str) -> Dict[str, float]:
-    """Resolve city name / landmark / ZIP → {lat, lon}."""
-
     key = settings.openweather_api_key
     if not key or key == "your_openweather_api_key":
-        raise HTTPException(500, "API key mis‑configured")
+        raise HTTPException(500, "API key mis-configured")
 
     query = raw.strip()
+
+    # 0) Check if input looks like coordinates: "lat,lon"
+    if ',' in query:
+        parts = query.split(',')
+        if len(parts) == 2:
+            try:
+                lat = float(parts[0].strip())
+                lon = float(parts[1].strip())
+                # Basic lat/lon range check
+                if -90 <= lat <= 90 and -180 <= lon <= 180:
+                    return {"lat": lat, "lon": lon}
+            except ValueError:
+                pass  # Not valid floats, fall through to other logic
 
     # 1) ZIP code path
     if is_zip(query):
@@ -170,3 +181,33 @@ def validate_location(raw: str) -> Dict[str, float]:
         return {"lat": float(hit["lat"]), "lon": float(hit["lon"])}
     except requests.exceptions.RequestException as exc:
         raise HTTPException(502, f"Weather service unavailable: {exc}") from exc
+
+
+def parse_location_input(raw: str) -> Dict[str, float]:
+    """
+    Parse the raw location input and return latitude and longitude.
+    Supports:
+     - GPS coordinates in 'lat,lon' format (floats)
+     - US ZIP codes (validated by regex)
+     - Generic place names (city, landmark, town, etc)
+    """
+    raw = raw.strip()
+    
+    # 1) Check if it's GPS coordinates like "37.7749,-122.4194"
+    if ',' in raw:
+        parts = raw.split(',')
+        if len(parts) == 2:
+            try:
+                lat = float(parts[0].strip())
+                lon = float(parts[1].strip())
+                if -90 <= lat <= 90 and -180 <= lon <= 180:
+                    return {"lat": lat, "lon": lon}
+            except ValueError:
+                pass  # Not valid float coordinates, fall through to next checks
+
+    # 2) Check if it's a ZIP code
+    if is_zip(raw):
+        return lookup_zip(raw)
+    
+    # 3) Otherwise treat as generic place name
+    return validate_location(raw)
