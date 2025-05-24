@@ -122,21 +122,24 @@ export function displayForecast(data) {
     entryGrid.className = "forecast-entries";
 
     entries.forEach(item => {
-      const time = new Date(item.timestamp).toLocaleTimeString(undefined, {
+    const time = new Date(item.timestamp).toLocaleTimeString(undefined, {
         hour: "2-digit",
         minute: "2-digit"
-      });
+    });
 
-      const entry = document.createElement("div");
-      entry.className = "forecast-entry";
-      entry.innerHTML = `
+    const iconObj = getWeatherIcon(item.conditions);
+
+    const entry = document.createElement("div");
+    entry.className = "forecast-entry";
+    entry.innerHTML = `
         <span class="fe-time">${time}</span>
-        <span class="fe-icon" title="${item.conditions}">${getWeatherIcon(item.conditions)}</span>
+        <span class="fe-icon" title="${iconObj.title}">${iconObj.icon}</span>
         <span class="fe-cond">${item.conditions}</span>
         <span class="fe-temp">${Math.round(item.temperature_c)}°C / ${Math.round(item.temperature_f)}°F</span>
-      `;
-      entryGrid.appendChild(entry);
+    `;
+    entryGrid.appendChild(entry);
     });
+
 
     dayDiv.appendChild(entryGrid);
     container.appendChild(dayDiv);
