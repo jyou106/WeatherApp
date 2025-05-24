@@ -118,33 +118,34 @@ def today(location: str):
 def weather_by_coords(lat: float, lon: float):
     logger.info(f"Fetching weather for coordinates: {lat},{lon}")
     try:
-        weather_url = (
-            f"https://api.openweathermap.org/data/2.5/weather?"
-            f"lat={lat}&lon={lon}&appid={settings.openweather_api_key}&units=metric"
+        url = (
+            "https://api.openweathermap.org/data/2.5/weather"
+            f"?lat={lat}&lon={lon}&appid={settings.openweather_api_key}&units=metric"
         )
-        logger.debug(f"Requesting OpenWeather API: {weather_url}")
-        
-        response = requests.get(weather_url)
-        response.raise_for_status()
-        data = response.json()
-        logger.debug(f"OpenWeather response: {data}")
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+
+        temp_c       = data["main"]["temp"]
+        feels_like_c = data["main"].get("feels_like")
 
         return {
             "location": f"{lat},{lon}",
-            "temperature": data["main"]["temp"],
-            "humidity": data["main"]["humidity"],
-            "wind_speed": data["wind"]["speed"],
-            "conditions": data["weather"][0]["main"],
-            "latitude": lat,
-            "longitude": lon
+            "temperature_c": temp_c,
+            "temperature_f": services.c_to_f(temp_c),
+            "feels_like_c": feels_like_c,
+            "feels_like_f": services.c_to_f(feels_like_c) if feels_like_c is not None else None,
+            "humidity":     data["main"]["humidity"],
+            "wind_speed":   data["wind"]["speed"],
+            "conditions":   data["weather"][0]["main"],
+            "latitude":  lat,
+            "longitude": lon,
         }
 
-    except requests.exceptions.RequestException as e:
-        logger.error(f"OpenWeather API request failed: {str(e)}")
-        raise HTTPException(status_code=502, detail=f"Weather service unavailable: {e}")
-    except KeyError as e:
-        logger.error(f"Malformed OpenWeather response: {str(e)}")
-        raise HTTPException(status_code=502, detail="Invalid weather data received")
+    except requests.exceptions.RequestException as exc:
+        logger.error(f"OpenWeather error: {exc}")
+        raise HTTPException(502, f"Weather service unavailable: {exc}")
+
 
 @app.get("/weather/current/{location}")
 def weather_by_location(location: str):
