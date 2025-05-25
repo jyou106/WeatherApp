@@ -1,59 +1,38 @@
-# Weather App
+# 🌤️ Weather App
 
-A full-stack weather application that was built using FastAPI and SQLAlchemy on the backend, and deployed using [Render](https://render.com). This app allows users to retrieve current weather, forecasts, and save weather records to a database.
+Built by Jessie You for the PM Accelerator Technical Assessment.
 
-🔗 **Live API Docs**: [https://weatherapp-xpwy.onrender.com/docs](https://weatherapp-xpwy.onrender.com/docs)  
-🌐 **Base URL**: `https://weatherapp-xpwy.onrender.com`
+## 📋 Project Overview
 
----
+This weather app is a full-stack FastAPI application that fetches current weather data, 5-day forecasts, and allows users to save and export weather records. It integrates with the OpenWeatherMap API and is deployed on [Render](https://render.com).
 
-## Features
-
-- Get current weather by location or coordinates
-- Retrieve 5-day forecasts
-- Suggest locations and map coordinates
-- Create, update, and delete weather records in a database
-- Export saved records in different formats
-- View API documentation through FastAPI’s Swagger UI
+🔗 **Live App**: [https://weatherapp-xpwy.onrender.com](https://weatherapp-xpwy.onrender.com)  
+🔗 **API Docs**: [https://weatherapp-xpwy.onrender.com/docs](https://weatherapp-xpwy.onrender.com/docs)
 
 ---
 
 ## Tech Stack
 
-- **Backend**: FastAPI, SQLAlchemy
-- **Database**: SQLite (can be swapped for PostgreSQL or others)
-- **Deployment**: Render
-- **External API**: OpenWeatherMap
+- Backend: FastAPI, SQLAlchemy
+- Database: SQLite
+- Deployment: Render
+- API Integration: OpenWeatherMap
 
 ---
 
-## 📌 API Endpoints
+## How to Run Locally
 
-You can interact with the app via `/docs`, or send requests directly to these endpoints:
-
-### 🌦️ Current Weather
-- `GET /weather/current/{location}`
-- `GET /weather/current/coords/{lat}/{lon}`
-
-### 📆 Forecast
-- `GET /weather/forecast/{location}`
-
-### 📍 Location
-- `GET /location/suggest?query=toronto`
-- `GET /location/map/{location}`
-
-### 🗃️ Weather Records
-- `GET /weather/` — Read all records
-- `GET /weather/{record_id}` — Read a specific record
-- `POST /weather/` — Create a record
-- `PUT /weather/{record_id}` — Update a record
-- `DELETE /weather/{record_id}` — Delete a record
-- `GET /weather/export/{record_id}/{format}` — Export a record (e.g. CSV, JSON)
-
----
-
-## 🧪 Example Usage
-
-**Get Weather by City:**
 ```bash
-curl https://weatherapp-xpwy.onrender.com/weather/current/Toronto
+# Clone the repo
+git clone https://github.com/yourusername/weather-app.git
+cd weather-app
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate   # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the app
+uvicorn app.main:app --reload
