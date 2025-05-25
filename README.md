@@ -1,8 +1,8 @@
-# 🌤️ Weather App
+# Weather App
 
 Built by Jessie You for the PM Accelerator Technical Assessment.
 
-## 📋 Project Overview
+## Project Overview
 
 This weather app is a full-stack FastAPI application that fetches current weather data, 5-day forecasts, and allows users to save and export weather records. It integrates with the OpenWeatherMap API and is deployed on [Render](https://render.com).
 
