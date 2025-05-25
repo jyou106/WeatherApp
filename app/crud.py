@@ -38,3 +38,6 @@ def delete_weather_record(db: Session, record_id: int):
         db.commit()
         return True
     return False
+
+def get_weather_record(db: Session, record_id: int):
+    return db.query(models.WeatherRecord).filter(models.WeatherRecord.id == record_id).first()
